@@ -2,6 +2,11 @@ package cc.mewa;
 
 import com.google.gson.JsonObject;
 
+/**
+ * Protocol - helper class for sending messages
+ * 
+ * @author ashiren
+ */
 class Protocol {
 	
 	public static String connect(String channel,String device, String password) {
