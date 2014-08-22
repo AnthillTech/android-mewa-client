@@ -137,7 +137,6 @@ public class MewaClient {
 	 */
 	public void close() {
 		if (session != null) {
-			send(Protocol.diconnect());
 			try {
 				session.close();
 			} catch (Exception e) {     

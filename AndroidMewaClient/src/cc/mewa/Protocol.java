@@ -17,14 +17,7 @@ class Protocol {
 		jsonObject.addProperty("password", password);
 		return jsonObject.toString();
 	}
-	
-	public static String diconnect() {
-		/*JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("message", "disconnect");
-		return jsonObject.toString();*/
-		return "{\"message\": \"disconnect\"}";
-	}
-	
+		
 	public static String getDevices() {
 		/*JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("message", "get-devices");
