@@ -12,7 +12,7 @@ Android library for mewa client.
 It basically uses MewaClient as client and OnMessageListener as listener for incoming messages and events.
 
 ```java
-final MewaClient client = new MewaClient("ws://mewa.cc/ws","test","android","passs");
+final MewaClient client = new MewaClient("ws://mewa.cc/ws","test","android","pass");
 client.setOnMessageListener(new OnMessageListener() {
   @Override
   public void onConnected() {
@@ -61,6 +61,8 @@ client.setOnMessageListener(new OnMessageListener() {
 try {
   client.connect();
 } catch (InitConnectionException e) {
+  e.printStackTrace();
+} catch (AlreadyConnectedToChannelException e) {
   e.printStackTrace();
 }
 ```
