@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import cc.mewa.MewaClient;
+import cc.mewa.MewaClient.AlreadyConnectedToChannelException;
 import cc.mewa.MewaClient.InitConnectionException;
 import cc.mewa.OnMessageListener;
 
@@ -72,6 +73,13 @@ public class MainActivity extends Activity implements Handler.Callback {
 				data.putString("text", reason);
 				msg.setData(data);
 				handler.sendMessage(msg);
+				
+				// let's assume something bad happened and close the webSocket
+				if (client != null) {
+					client.close();
+				}
+				connected = false;
+				buttonsDisable();
 			}
 			
 			@Override
@@ -174,6 +182,10 @@ public class MainActivity extends Activity implements Handler.Callback {
 			    	try {
 						client.connect();
 					} catch (InitConnectionException e) {
+						e.printStackTrace();
+						return "error";
+					} catch (AlreadyConnectedToChannelException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 						return "error";
 					}
