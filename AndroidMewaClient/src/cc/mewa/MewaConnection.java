@@ -83,7 +83,7 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Checks if the client is connected to the channel.
+	 * Checks if the client is connected to the channel. May return false, while the WebSocket itself is still alive.
 	 *  
 	 * @return Returns whether is connected to channel or not.
 	 */
@@ -285,6 +285,7 @@ public class MewaConnection {
 	// Occurs on WebSocket close
 	@OnClose
 	public void onClose() {
+		close();
 		if (onMessageListener != null) {
 			onMessageListener.onClosed();
 		}
