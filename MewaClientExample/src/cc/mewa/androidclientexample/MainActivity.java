@@ -22,7 +22,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 	public static final String TAG = "MainActivity";
 	
 	public static final String WS_URI = "ws://mewa.cc/ws";
-	public static final String CHANNEL = "jdermont.channel1";
+	public static final String CHANNEL = "user.channel1";
 	public static final String DEVICE = "android";
 	public static final String PASSWORD = "c1";
 	
