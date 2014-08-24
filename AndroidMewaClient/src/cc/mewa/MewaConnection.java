@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.DeploymentException;
+import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -20,14 +21,12 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * MewaClient - websocket client implementation for mewa api
+ * MewaConnection - websocket client implementation for mewa api
  * 
  * @author Jacek Dermont
  */
 @ClientEndpoint
-public class MewaClient {
-	public static final String TAG = "MewaClient";
-	
+public class MewaConnection {
 	/**
 	 * InitConnectionException - an exception raised during initializing connection
 	 */
@@ -39,21 +38,6 @@ public class MewaClient {
 		}
 
 		public InitConnectionException(String message) {
-			super(message);
-		}
-	}
-	
-	/**
-	 * AlreadyConnectedToChannelException - an exception raised when trying to connect to already connected channel
-	 */
-	public class AlreadyConnectedToChannelException extends Exception {
-		private static final long serialVersionUID = 17462239345384243L;
-
-		public AlreadyConnectedToChannelException() {
-			
-		}
-
-		public AlreadyConnectedToChannelException(String message) {
 			super(message);
 		}
 	}
@@ -71,7 +55,7 @@ public class MewaClient {
 	private OnMessageListener onMessageListener;
 		
 	/**
-	 * Constructor for MewaClient. Takes WebSocket URI, channel name, device name and channel password as parametres.
+	 * Constructor for MewaConnection. Takes WebSocket URI, channel name, device name and channel password as parametres.
 	 * Example: new MewaClient("ws://localhost/ws","user.channel1","java","password1")
 	 * 
 	 * @param uri - WebSocket URI
@@ -79,7 +63,7 @@ public class MewaClient {
 	 * @param device - device name
 	 * @param password - channel password
 	 */
-	public MewaClient(String uri, String channel, String device, String password) {
+	public MewaConnection(String uri, String channel, String device, String password) {
 		this.uri = uri;
 		this.channel = channel;
 		this.device = device;
@@ -103,24 +87,23 @@ public class MewaClient {
 	 *  
 	 * @return Returns whether is connected to channel or not.
 	 */
-	public boolean isConnected() {
-		return connected && session != null && session.isOpen();
+	public boolean isConnectedToChannel() {
+		return connected;
 	}
 	
 	/**
-	 * Connects to the WebSocket. Whether the channel actually accepts this device will be notified by
-	 * <b>OnMessageListener.onConnected()</b> or <b>OnMessageListener.onError()</b>.
+	 * Connects or, if active, reconnects to the channel. Whether the channel actually accepts this device will be notified by
+	 * <i>OnMessageListener.onConnected()</i> or <i>OnMessageListener.onError()</i>.
 	 * 
 	 * @throws InitConnectionException - if some errors occured during connection initialization
-	 * @throws AlreadyConnectedToChannelException - if the client is already connected
 	 */
-	public void connect() throws InitConnectionException,AlreadyConnectedToChannelException {
-		if (isConnected()) {
-			throw new AlreadyConnectedToChannelException("Already connected to the channel.");
+	public void connect() throws InitConnectionException {
+		if (session != null && session.isOpen()) {
+			close();
 		}
 		
 		try {
-			session = client.connectToServer(MewaClient.this, URI.create(uri));
+			session = client.connectToServer(MewaConnection.this, URI.create(uri));
 		} catch (DeploymentException e) {
 			throw new InitConnectionException(e.getMessage());
 		} catch (IOException e) {
@@ -129,7 +112,6 @@ public class MewaClient {
 		
 		listenerThread = new WSListenerThread();
 		listenerThread.start();
-		connected = true;
 	}
 	
 	/**
@@ -154,10 +136,20 @@ public class MewaClient {
 	}
 	
 	/**
+	 * Sends "disconnect" request to the channel. Keep in mind that the WebSocket will be still active. Returns false if sending the request failed.
+	 * It is better to use <i>close()</i> instead.
+	 * 
+	 * @return Returns false if sending the request failed (i.e. connection not opened).
+	 */
+	public boolean disconnect() {
+		return send(Protocol.disconnect());
+	}
+	
+	/**
 	 * Sends request device list event to the channel. Returns false if sending the request failed.
-	 * Note that all events are asynchronous. The response will be notified via <b>OnMessageListener.onDevicesEvent()</b> 
+	 * Note that all events are asynchronous. The response will notify via <i>OnMessageListener.onDevicesEvent()</i> 
 	 *  
-	 * @return Returns false if sending the request failed.
+	 * @return Returns false if sending the request failed (i.e. connection not opened).
 	 */
 	public boolean requestDevicesList() {
 		return send(Protocol.getDevices());
@@ -168,7 +160,7 @@ public class MewaClient {
 	 * 
 	 * @param eventId - event type
 	 * @param params - event parametres
-	 * @return Returns false if sending the event failed.
+	 * @return Returns false if sending the event failed (i.e. connection not opened).
 	 */
 	public boolean sendEvent(String eventId, String params) {
 		return send(Protocol.sendEvent(eventId, params));
@@ -180,7 +172,7 @@ public class MewaClient {
 	 * @param device - other device name
 	 * @param msgId - message type
 	 * @param params - message parametres
-	 * @return Returns false if sending the message failed.
+	 * @return Returns false if sending the message failed (i.e. connection not opened).
 	 */
 	public boolean sendMessage(String device,String msgId, String params) {
 		return send(Protocol.sendMessage(device, msgId, params));
@@ -220,13 +212,14 @@ public class MewaClient {
     public void onMessage(String msg) {
 		JsonParser parser = new JsonParser();
 		JsonObject jsonObject = parser.parse(msg).getAsJsonObject();
-		String message = jsonObject.get("message").getAsString();
+		String message = jsonObject.get("type").getAsString();
 		if (message.equals("connected")) {
+			connected = true;
 			if (onMessageListener != null) {
 				onMessageListener.onConnected();
 			}
 		} else if (message.equals("disconnected")) {
-			close();
+			connected = false;
 			if (onMessageListener != null) {
 				onMessageListener.onDisconnected();
 			}
@@ -245,32 +238,39 @@ public class MewaClient {
 			}
 		} else if (message.equals("joined-channel")) {
 			if (onMessageListener != null) {
-				onMessageListener.onDeviceJoinedChannel(jsonObject.get("device").getAsString());
+				String time = jsonObject.get("time").getAsString();
+				String device = jsonObject.get("device").getAsString();
+				onMessageListener.onDeviceJoinedChannel(time, device);
 			}
 		} else if (message.equals("left-channel")) {
 			if (onMessageListener != null) {
-				onMessageListener.onDeviceLeftChannel(jsonObject.get("device").getAsString());
+				String time = jsonObject.get("time").getAsString();
+				String device = jsonObject.get("device").getAsString();
+				onMessageListener.onDeviceLeftChannel(time, device);
 			}
 		} else if (message.equals("event")) {
 			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
 				String device = jsonObject.get("device").getAsString();
 				String eventId = jsonObject.get("id").getAsString();
 				String params = jsonObject.get("params").getAsString();
-				onMessageListener.onEvent(device, eventId, params);
+				onMessageListener.onEvent(time, device, eventId, params);
 			}
 		} else if (message.equals("message")) {
 			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
 				String device = jsonObject.get("device").getAsString();
 				String msgId = jsonObject.get("id").getAsString();
 				String params = jsonObject.get("params").getAsString();
-				onMessageListener.onMessage(device, msgId, params);
+				onMessageListener.onMessage(time, device, msgId, params);
 			}
 		} else if (message.equals("devices-event")) {
 			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
 				Gson gson = new Gson();
 				Type type = new TypeToken<List<String>>(){}.getType();
 				List<String> devicesList =  gson.fromJson(jsonObject.get("devices"), type );
-				onMessageListener.onDevicesEvent(devicesList);
+				onMessageListener.onDevicesEvent(time, devicesList);
 			}
 		}
     }
@@ -281,6 +281,14 @@ public class MewaClient {
 		close();
         t.printStackTrace();
     }
+	
+	// Occurs on WebSocket close
+	@OnClose
+	public void onClose() {
+		if (onMessageListener != null) {
+			onMessageListener.onClosed();
+		}
+	}
 
 	// Internal listener thread
 	private class WSListenerThread extends Thread {
