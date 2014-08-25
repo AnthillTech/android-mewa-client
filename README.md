@@ -7,7 +7,7 @@ Android library for mewa client. Tested on Android 2.3.3+ (API 10). Pure Java ap
 * google-gson for json parsing
 * tyrus-standalone-client for websockets support
 
-## Instalation
+## Installation
 
 Just import the AndroidMewaClient project to Eclipse. The android projects wanting to use it, shall reference this project.
 MewaClientExample is a sample project referencing to the library.
@@ -25,11 +25,17 @@ connection.setOnMessageListener(new OnMessageListener() {
     client.requestDevicesList();
   }
 
+  // note that this happens only when client explicitly gets disconnect signal from the channel
+  // WebSocket itself might be still alive.
   @Override
   public void onDisconnected() {
-    // note that this happens only when client explicitly gets disconnect signal from the channel
-    // WebSocket itself might be still alive.
     Log.d(TAG,"onDisconnected()");
+  }
+
+  // happens when WebSocket is closed
+  @Override
+  public void onClosed() {
+    Log.d(TAG,"onClosed()");
   }
 
   @Override
