@@ -34,7 +34,7 @@ public abstract class OnMessageAdapter implements OnMessageListener {
 	 * @param timestamp - ISO 8601 time when packed was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param eventId - event type
-	 * @param params - event parametres
+	 * @param params - event parameters
 	 */
 	@Override
 	public void onEvent(String timestamp, String fromDevice, String eventId, String params) {};
@@ -45,7 +45,7 @@ public abstract class OnMessageAdapter implements OnMessageListener {
 	 * @param timestamp - ISO 8601 time when packed was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param msgId - message type
-	 * @param params - message parametres
+	 * @param params - message parameters
 	 */
 	@Override
 	public void onMessage(String timestamp, String fromDevice, String msgId, String params) {};

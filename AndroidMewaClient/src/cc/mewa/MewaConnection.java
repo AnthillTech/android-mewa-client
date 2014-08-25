@@ -25,6 +25,10 @@ import com.google.gson.reflect.TypeToken;
  * 
  * @author Jacek Dermont
  */
+/**
+ * @author ashiren
+ *
+ */
 @ClientEndpoint
 public class MewaConnection {
 	/**
@@ -55,7 +59,7 @@ public class MewaConnection {
 	private OnMessageListener onMessageListener;
 		
 	/**
-	 * Constructor for MewaConnection. Takes WebSocket URI, channel name, device name and channel password as parametres.
+	 * Constructor for MewaConnection. Takes WebSocket URI, channel name, device name and channel password as parameters.
 	 * Example: new MewaClient("ws://localhost/ws","user.channel1","java","password1")
 	 * 
 	 * @param uri - WebSocket URI
@@ -156,10 +160,10 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Sends event to channel with parametres. Returns false if the sending failed.
+	 * Sends event to channel with parameters. Returns false if the sending failed.
 	 * 
 	 * @param eventId - event type
-	 * @param params - event parametres
+	 * @param params - event parameters
 	 * @return Returns false if sending the event failed (i.e. connection not opened).
 	 */
 	public boolean sendEvent(String eventId, String params) {
@@ -167,11 +171,11 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Sends message to another device with parametres. Returns false if the sending failed.
+	 * Sends message to another device with parameters. Returns false if the sending failed.
 	 * 
 	 * @param device - other device name
 	 * @param msgId - message type
-	 * @param params - message parametres
+	 * @param params - message parameters
 	 * @return Returns false if sending the message failed (i.e. connection not opened).
 	 */
 	public boolean sendMessage(String device,String msgId, String params) {
@@ -196,7 +200,11 @@ public class MewaConnection {
 		return true;
 	}
 	
-	// Occurs after opening WebSocket
+	/**
+	 * Occurs after opening WebSocket. Sends request to join channel.
+	 * 
+	 * @param session - opened session variable
+	 */
 	@OnOpen
 	public void onOpen(Session session) {
 		try {
@@ -207,9 +215,13 @@ public class MewaConnection {
 		}
 	}
 	
-	// Occurs after getting any type of message
+	/**
+	 * Occurs whenever any message comes from channel.
+	 * 
+	 * @param msg - message from channel
+	 */
 	@OnMessage
-    public void onMessage(String msg) {
+	public void onMessage(String msg) {
 		JsonParser parser = new JsonParser();
 		JsonObject jsonObject = parser.parse(msg).getAsJsonObject();
 		String message = jsonObject.get("type").getAsString();
@@ -275,14 +287,21 @@ public class MewaConnection {
 		}
     }
 	
-	// Occurs on WebSocket error
+
+	/**
+	 * Occurs when some connection error happens within WebSocket.
+	 * 
+	 * @param t - an throwable
+	 */
 	@OnError
-    public void onError(Throwable t) {
+	public void onError(Throwable t) {
 		close();
         t.printStackTrace();
     }
 	
-	// Occurs on WebSocket close
+	/**
+	 * Occurs when WebSocket is closed.
+	 */
 	@OnClose
 	public void onClose() {
 		close();
@@ -291,7 +310,12 @@ public class MewaConnection {
 		}
 	}
 
-	// Internal listener thread
+	
+	/**
+	 * WSListenerThread - internal listening thread
+	 * 
+	 * @author Jacek Dermont
+	 */
 	private class WSListenerThread extends Thread {
 		private Object waitObject;
 		

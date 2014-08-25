@@ -26,6 +26,7 @@ public interface OnMessageListener {
 	
 	/**
 	 * Invoked when received error message from the channel.
+	 * Error messages: "already-connected-error", "authorization-error", "not-connected-error".
 	 * 
 	 * @param reason - text message
 	 */
@@ -52,7 +53,7 @@ public interface OnMessageListener {
 	 * @param timestamp - ISO 8601 time when packed was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param eventId - event type
-	 * @param params - event parametres
+	 * @param params - event parameters
 	 */
 	public void onEvent(String timestamp, String fromDevice, String eventId, String params);
 	
@@ -62,7 +63,7 @@ public interface OnMessageListener {
 	 * @param timestamp - ISO 8601 time when packed was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param msgId - message type
-	 * @param params - message parametres
+	 * @param params - message parameters
 	 */
 	public void onMessage(String timestamp, String fromDevice, String msgId, String params);
 	
