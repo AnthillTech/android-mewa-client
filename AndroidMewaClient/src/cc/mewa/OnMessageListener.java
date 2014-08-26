@@ -13,20 +13,16 @@ public interface OnMessageListener {
 	 * Invoked when receiving <b>connected</b> message from the channel.
 	 */
 	public void onConnected();
-	
+		
 	/**
-	 * Invoked <b>only</b> when receiving <b>disconnected</b> message from the channel. WebSocket itself might be still active.
-	 */
-	public void onDisconnected();
-	
-	/**
-	 * Invoked when the WebSocket is closed.
+	 * Invoked when disconnected from channel or the entire WebSocket is closed.
 	 */
 	public void onClosed();
 	
 	/**
 	 * Invoked when received error message from the channel.
 	 * Error messages: "already-connected-error", "authorization-error", "not-connected-error".
+	 * On "authorization-error" automatically closes WebSocket.
 	 * 
 	 * @param reason - text message
 	 */
@@ -42,7 +38,7 @@ public interface OnMessageListener {
 	/**
 	 * Invoked whenever a device leaves the channel.
 	 * 
-	 * @param timestamp - ISO 8601 time when packed was processed in the channel
+	 * @param timestamp - ISO 8601 time when packet was processed in the channel
 	 * @param device - name of the device
 	 */
 	public void onDeviceLeftChannel(String timestamp, String device);
@@ -50,7 +46,7 @@ public interface OnMessageListener {
 	/**
 	 * Invoked when receiving an event sent from a device.
 	 * 
-	 * @param timestamp - ISO 8601 time when packed was processed in the channel
+	 * @param timestamp - ISO 8601 time when packet was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param eventId - event type
 	 * @param params - event parameters
@@ -60,7 +56,7 @@ public interface OnMessageListener {
 	/**
 	 * Invoked when receiving a message sent from a device.
 	 * 
-	 * @param timestamp - ISO 8601 time when packed was processed in the channel
+	 * @param timestamp - ISO 8601 time when packet was processed in the channel
 	 * @param fromDevice - name of the device
 	 * @param msgId - message type
 	 * @param params - message parameters
@@ -70,7 +66,7 @@ public interface OnMessageListener {
 	/**
 	 * Invoked when a channel, after requested, sends list of connected devices to this device.
 	 * 
-	 * @param timestamp - ISO 8601 time when packed was processed in the channel
+	 * @param timestamp - ISO 8601 time when packet was processed in the channel
 	 * @param deviceList - list of connected devices in channel
 	 */
 	public void onDevicesEvent(String timestamp, List<String> deviceList);

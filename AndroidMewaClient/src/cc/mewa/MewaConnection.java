@@ -21,13 +21,9 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * MewaConnection - websocket client implementation for mewa api
+ * MewaConnection - WebSocket client implementation for mewa api.
  * 
  * @author Jacek Dermont
- */
-/**
- * @author ashiren
- *
  */
 @ClientEndpoint
 public class MewaConnection {
@@ -113,7 +109,7 @@ public class MewaConnection {
 		} catch (IOException e) {
 			throw new InitConnectionException(e.getMessage());
 		}
-		
+
 		listenerThread = new WSListenerThread();
 		listenerThread.start();
 	}
@@ -140,13 +136,11 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Sends "disconnect" request to the channel. Keep in mind that the WebSocket will be still active. Returns false if sending the request failed.
-	 * It is better to use <i>close()</i> instead.
-	 * 
-	 * @return Returns false if sending the request failed (i.e. connection not opened).
+	 * Sends "disconnect" request to the channel, then closes the connection.
 	 */
-	public boolean disconnect() {
-		return send(Protocol.disconnect());
+	public void disconnect() {
+		send(Protocol.disconnect());
+		close();
 	}
 	
 	/**
@@ -231,19 +225,19 @@ public class MewaConnection {
 				onMessageListener.onConnected();
 			}
 		} else if (message.equals("disconnected")) {
-			connected = false;
 			if (onMessageListener != null) {
-				onMessageListener.onDisconnected();
+				onMessageListener.onClosed();
 			}
+			close();			
 		} else if (message.equals("already-connected-error")) {
 			if (onMessageListener != null) {
 				onMessageListener.onError("already-connected-error");
 			}
 		} else if (message.equals("authorization-error")) {
 			if (onMessageListener != null) {
-				close();
 				onMessageListener.onError("authorization-error");
 			}
+			close();
 		} else if (message.equals("not-connected-error")) {
 			if (onMessageListener != null) {
 				onMessageListener.onError("not-connected-error");
@@ -289,14 +283,14 @@ public class MewaConnection {
 	
 
 	/**
-	 * Occurs when some connection error happens within WebSocket.
+	 * Occurs when some connection error happens within WebSocket. Closes WebSocket.
 	 * 
 	 * @param t - an throwable
 	 */
 	@OnError
 	public void onError(Throwable t) {
+		t.printStackTrace();
 		close();
-        t.printStackTrace();
     }
 	
 	/**

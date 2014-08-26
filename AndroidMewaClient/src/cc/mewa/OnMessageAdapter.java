@@ -11,6 +11,11 @@ import java.util.List;
 public abstract class OnMessageAdapter implements OnMessageListener {	
 	
 	/**
+	 * Invoked <b>only</b> when receiving <b>disconnected</b> message from the channel. WebSocket itself might be still active.
+	 */
+	public void onDisconnected() {};
+	
+	/**
 	 * Invoked whenever a device joins the channel.
 	 * 
 	 * @param timestamp - ISO 8601 time when packed was processed in the channel
