@@ -144,13 +144,11 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Sends request device list event to the channel. Returns false if sending the request failed.
+	 * Sends request device list event to the channel.
 	 * Note that all events are asynchronous. The response will notify via <i>OnMessageListener.onDevicesEvent()</i> 
-	 *  
-	 * @return Returns false if sending the request failed (i.e. connection not opened).
 	 */
-	public boolean requestDevicesList() {
-		return send(Protocol.getDevices());
+	public void requestDevicesList() {
+		send(Protocol.getDevices());
 	}
 	
 	/**
@@ -158,40 +156,35 @@ public class MewaConnection {
 	 * 
 	 * @param eventId - event type
 	 * @param params - event parameters
-	 * @return Returns false if sending the event failed (i.e. connection not opened).
 	 */
-	public boolean sendEvent(String eventId, String params) {
-		return send(Protocol.sendEvent(eventId, params));
+	public void sendEvent(String eventId, String params) {
+		send(Protocol.sendEvent(eventId, params));
 	}
 	
 	/**
-	 * Sends message to another device with parameters. Returns false if the sending failed.
+	 * Sends message to another device with parameters.
 	 * 
 	 * @param device - other device name
 	 * @param msgId - message type
 	 * @param params - message parameters
-	 * @return Returns false if sending the message failed (i.e. connection not opened).
 	 */
-	public boolean sendMessage(String device,String msgId, String params) {
-		return send(Protocol.sendMessage(device, msgId, params));
+	public void sendMessage(String device,String msgId, String params) {
+		send(Protocol.sendMessage(device, msgId, params));
 	}
 	
 	/**
-	 * Private method for sending any type of message. Returns false if the sending failed.
+	 * Private method for sending any type of message.
 	 * 
 	 * @param message - the message
-	 * @return Returns false if the sending failed.
 	 */
-	private boolean send(String message) {
-		if (connected == false || session == null) return false;
+	private void send(String message) {
+		if (connected == false || session == null) return;
 		
 		try {
 			session.getBasicRemote().sendText(message);
 		} catch (IOException e) {
-			return false;
+
 		}
-		
-		return true;
 	}
 	
 	/**
