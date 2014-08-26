@@ -54,20 +54,11 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Log.d(TAG,"onConnected()");
 				handler.sendEmptyMessage(0);
 			}
-
-			// note that this happens only when client explicitly gets disconnect signal from the channel
-			// the WebSocket itself might be still alive
-			@Override
-			public void onDisconnected() {
-				Log.d(TAG,"onDisconnected()");
-			}
 			
-			// happens whenever WebSocket is closed
 			@Override
 			public void onClosed() {
 				Log.d(TAG,"onClosed()");
 				handler.sendEmptyMessage(2);
-				clientIsDisconnected();
 			}
 
 			@Override
@@ -79,9 +70,6 @@ public class MainActivity extends Activity implements Handler.Callback {
 				data.putString("text", reason);
 				msg.setData(data);
 				handler.sendMessage(msg);
-				
-				// let's assume something bad happened and close the connection entirely
-				connection.close();
 			}
 			
 			@Override
@@ -90,7 +78,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Message msg = new Message();
 				msg.what = 1;
 				Bundle data = new Bundle();
-				data.putString("text", timestamp+" --- "+"Devices: "+deviceList.toString());
+				data.putString("text", "Devices: "+deviceList.toString());
 				msg.setData(data);
 				handler.sendMessage(msg);
 			}
@@ -101,7 +89,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Message msg = new Message();
 				msg.what = 1;
 				Bundle data = new Bundle();
-				data.putString("text", timestamp+" --- "+"Event "+eventId+" from "+fromDevice+" with params "+params);
+				data.putString("text", "Event "+eventId+" from "+fromDevice+" with params "+params);
 				msg.setData(data);
 				handler.sendMessage(msg);
 			};
@@ -112,7 +100,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Message msg = new Message();
 				msg.what = 1;
 				Bundle data = new Bundle();
-				data.putString("text", timestamp+" --- "+"Message "+msgId+" from "+fromDevice+" with params "+params);
+				data.putString("text", "Message "+msgId+" from "+fromDevice+" with params "+params);
 				msg.setData(data);
 				handler.sendMessage(msg);
 			}
@@ -123,7 +111,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Message msg = new Message();
 				msg.what = 1;
 				Bundle data = new Bundle();
-				data.putString("text", timestamp+" --- "+device+" joined the channel");
+				data.putString("text", device+" joined the channel");
 				msg.setData(data);
 				handler.sendMessage(msg);
 			}
@@ -134,7 +122,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 				Message msg = new Message();
 				msg.what = 1;
 				Bundle data = new Bundle();
-				data.putString("text", timestamp+" --- "+device+" left the channel");
+				data.putString("text", device+" left the channel");
 				msg.setData(data);
 				handler.sendMessage(msg);
 			}
@@ -200,13 +188,11 @@ public class MainActivity extends Activity implements Handler.Callback {
 			            dialog.dismiss();
 			        }
 			        
-			        if (result.equals("ok")) {
-				    	clientIsConnected();
-			        } else {
+			        if (!result.equals("ok")) {
 			        	Message msg = new Message();
 						msg.what = 1;
 						Bundle data = new Bundle();
-						data.putString("text", "Could not connect");
+						data.putString("text", "Could not connect.");
 						msg.setData(data);
 						handler.sendMessage(msg);
 			        }
@@ -239,11 +225,13 @@ public class MainActivity extends Activity implements Handler.Callback {
 	@Override
 	public boolean handleMessage(Message msg) {
 		if (msg.what == 0) {
+			clientIsConnected();
 			loggerTxt.append("Connected\n");
 		} else if (msg.what == 1) {
 			String text = msg.getData().getString("text");
 			loggerTxt.append(text+"\n");
 		} else {
+			clientIsDisconnected();
 			loggerTxt.append("Connection closed.\n");
 		}
 		

@@ -17,22 +17,14 @@ MewaClientExample is a sample project referencing to the library.
 It basically uses MewaConnection as client and OnMessageListener as listener for incoming messages and events.
 
 ```java
-MewaConnection connection = new MewaConnection("ws://mewa.cc/ws","test","android","pass");
+MewaConnection connection = new MewaConnection("ws://mewa.cc/ws","channel","android","pass");
 connection.setOnMessageListener(new OnMessageListener() {
   @Override
   public void onConnected() {
     Log.d(TAG,"onConnected()");
-    client.requestDevicesList();
+    client.requestDevicesList(); // requests for devices list after connecting
   }
 
-  // note that this happens only when client explicitly gets disconnect signal from the channel
-  // WebSocket itself might be still alive.
-  @Override
-  public void onDisconnected() {
-    Log.d(TAG,"onDisconnected()");
-  }
-
-  // happens when WebSocket is closed
   @Override
   public void onClosed() {
     Log.d(TAG,"onClosed()");
@@ -73,5 +65,14 @@ try {
   connection.connect();
 } catch (InitConnectionException e) {
   e.printStackTrace();
-} 
+}
+
+// it's better to close connection after leaving
+@Override
+protected void onDestroy() {
+  if (connection != null) {
+    connection.close();
+  }
+  super.onDestroy();
+}
 ```
