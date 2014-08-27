@@ -89,12 +89,11 @@
     <!-- version-tag: 1 -->
     <import file="${sdk.dir}/tools/ant/build.xml" />
     
+    <!-- TODO dopracowac -->
     <target name="jar" depends="debug">
       <jar
-	includes="libs/**"
         destfile="bin/android-mewa-client.jar"
         basedir="bin/classes"
-	
       />
     </target>
 
