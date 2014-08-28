@@ -1,0 +1,33 @@
+<project name="MewaClient" default="build" basedir=".">
+    <description>
+      Builds library project and/or android example.
+    </description>
+
+    <property name="main.path" value="src/main" />
+    <property name="example.path" value="src/example" />
+    
+  <target name="build" description="build library into .jar file" >
+    <subant target="build">
+      <fileset dir="${main.path}" includes="build.xml"/>
+    </subant>
+    <move file="${main.path}/bin/android-mewa-client.jar" tofile="android-mewa-client.jar"/>
+  </target>
+  
+  <target name="build-example" description="build android example into .apk file" >
+    <subant target="debug">
+      <fileset dir="${example.path}" includes="build.xml"/>
+    </subant>
+    <move file="${example.path}/bin/MewaClientExample-debug.apk" tofile="MewaClientExample.apk"/>
+    
+  </target>
+
+  <target name="clean" description="clean up" >
+    <subant target="clean">
+      <fileset dir="${main.path}" includes="build.xml"/>
+    </subant>
+    <subant target="clean">
+      <fileset dir="${example.path}" includes="build.xml"/>
+    </subant>
+  </target>
+
+</project>

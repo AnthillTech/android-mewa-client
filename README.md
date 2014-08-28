@@ -7,10 +7,24 @@ Android library for mewa client. Tested on Android 2.3.3+ (API 10). Pure Java ap
 * google-gson for json parsing
 * tyrus-standalone-client for websockets support
 
-## Installation
+## Building and import
 
-Just import the AndroidMewaClient project to Eclipse. The android projects wanting to use it, shall reference this project.
-MewaClientExample is a sample project referencing to the library.
+Run:
+```sh
+ant build
+```
+to create android-mewa-client.jar in the path. You can attach this jar to your project. Or you can import the main project, for example in eclipse, and reference to it.
+
+Run:
+```sh
+ant build-example
+```
+to build an example application. It will create MewaClientExample.apk in the path. The app requires Android 2.3.3+.
+
+To clean bin/ and gen/ files, run:
+```sh
+ant clean
+```
 
 ## Usage
 
@@ -67,7 +81,7 @@ try {
   e.printStackTrace();
 }
 
-// it's better to close connection after leaving
+// it's better to close connection before leaving
 @Override
 protected void onDestroy() {
   if (connection != null) {
