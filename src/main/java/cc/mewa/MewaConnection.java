@@ -119,12 +119,18 @@ public class MewaConnection {
 	 */
 	public void close() {
 		if (session != null) {
-			try {
-				session.close();
-			} catch (Exception e) {     
-				e.printStackTrace();
-			}
-			session = null;
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						session.close();
+					} catch (Exception e) {     
+						e.printStackTrace();
+					}
+					session = null;
+				}
+			}).start();
+
 		}
 		
 		if (listenerThread != null) {
@@ -177,14 +183,19 @@ public class MewaConnection {
 	 * 
 	 * @param message - the message
 	 */
-	private void send(String message) {
+	private void send(final String message) {
 		if (connected == false || session == null) return;
 		
-		try {
-			session.getBasicRemote().sendText(message);
-		} catch (IOException e) {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					session.getBasicRemote().sendText(message);
+				} catch (IOException e) {
 
-		}
+				}
+			}
+		}).start();
 	}
 	
 	/**
