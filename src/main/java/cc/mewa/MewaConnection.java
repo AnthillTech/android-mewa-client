@@ -41,7 +41,7 @@ public class MewaConnection {
 			super(message);
 		}
 	}
-	
+
 	private String uri;
 	private String channel;
 	private String device;
@@ -73,6 +73,42 @@ public class MewaConnection {
 		client = ClientManager.createClient();
 	}
 
+	/**
+	 * Returns host URI.
+	 * 
+	 * @return - host URI
+	 */
+	public String getUri() {
+		return uri;
+	}
+
+	/**
+	 * Returns channel name.
+	 * 
+	 * @return - channel name
+	 */
+	public String getChannel() {
+		return channel;
+	}
+
+	/**
+	 * Returns device name.
+	 * 
+	 * @return - device name
+	 */
+	public String getDevice() {
+		return device;
+	}
+
+	/**
+	 * Returns channel password.
+	 * 
+	 * @return - channel password
+	 */
+	public String getPassword() {
+		return password;
+	}
+	
 	/**
 	 * Sets OnMessageListener (or OnMessageAdapter), which will listen on incoming events. Set null to remove any OnMessageListeners.
 	 * 
@@ -125,7 +161,7 @@ public class MewaConnection {
 					try {
 						session.close();
 					} catch (Exception e) {     
-						e.printStackTrace();
+						
 					}
 					session = null;
 				}
