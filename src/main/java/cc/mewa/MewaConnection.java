@@ -155,7 +155,7 @@ public class MewaConnection {
 	 */
 	public void close() {
 		if (session != null) {
-			new Thread(new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -165,8 +165,13 @@ public class MewaConnection {
 					}
 					session = null;
 				}
-			}).start();
+			});
+			t.start();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
 
+			}
 		}
 		
 		if (listenerThread != null) {
