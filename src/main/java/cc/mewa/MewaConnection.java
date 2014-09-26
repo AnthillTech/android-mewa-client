@@ -227,7 +227,7 @@ public class MewaConnection {
 	private void send(final String message) {
 		if (connected == false || session == null) return;
 		
-		new Thread(new Runnable() {
+		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -236,7 +236,13 @@ public class MewaConnection {
 
 				}
 			}
-		}).start();
+		});
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+
+		}
 	}
 	
 	/**
