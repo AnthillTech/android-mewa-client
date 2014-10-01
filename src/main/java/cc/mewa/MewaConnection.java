@@ -3,6 +3,7 @@ package cc.mewa;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
@@ -46,7 +47,7 @@ public class MewaConnection {
 	private String channel;
 	private String device;
 	private String password;
-	
+	private long idleTimeout;
 	private boolean connected;
 	private ClientManager client;
 	private Session session;
@@ -110,6 +111,25 @@ public class MewaConnection {
 	}
 	
 	/**
+	 * Returns idle timeout.
+	 * 
+	 * @return - timeout in milliseconds. 0 for no timeout
+	 */
+	public long getIdleTimeout() {
+		return idleTimeout;
+	}
+	
+	/**
+	 * Sets idle timeout in milliseconds. Client will close if it doesn't send or receive any data.
+	 * 
+	 * @param idleTimeout - idle timeout in milliseconds. 0 for no timeout
+	 */
+	public void setIdleTimeout(long idleTimeout) {
+		this.idleTimeout = idleTimeout;
+		if (session != null) session.setMaxIdleTimeout(idleTimeout);
+	}
+	
+	/**
 	 * Sets OnMessageListener (or OnMessageAdapter), which will listen on incoming events. Set null to remove any OnMessageListeners.
 	 * 
 	 * @param onMessageListener - An OnMessageListener (or OnMessageAdapter)
@@ -140,6 +160,7 @@ public class MewaConnection {
 		
 		try {
 			session = client.connectToServer(MewaConnection.this, URI.create(uri));
+			session.setMaxIdleTimeout(idleTimeout);
 		} catch (DeploymentException e) {
 			throw new InitConnectionException(e.getMessage());
 		} catch (IOException e) {
@@ -226,13 +247,13 @@ public class MewaConnection {
 	 */
 	private void send(final String message) {
 		if (connected == false || session == null) return;
-		
+
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					session.getBasicRemote().sendText(message);
-				} catch (IOException e) {
+					session.getAsyncRemote().sendText(message);
+				} catch (Exception e) {
 
 				}
 			}
