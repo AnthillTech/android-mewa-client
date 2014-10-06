@@ -1,6 +1,6 @@
 # android-mewa-client
 
-Android library for mewa client. Tested on Android 2.3.3+ (API 10). Pure Java applications should also benefit from the library, as no Android-specific code is used there.
+Android library for mewa client. Tested on Android 2.3.3+ (API 10). Pure Java applications should also benefit from the library, the Android-specific code is used for wake lock, but it can be easily removed.
 
 ## Libraries used
 

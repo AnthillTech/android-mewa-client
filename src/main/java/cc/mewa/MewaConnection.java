@@ -3,7 +3,6 @@ package cc.mewa;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
@@ -15,6 +14,8 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
+
+import android.os.PowerManager.WakeLock; // android-specific
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -51,6 +52,8 @@ public class MewaConnection {
 	private boolean connected;
 	private ClientManager client;
 	private Session session;
+	private WakeLock wakeLock; // android-specific
+	private final Object wakeLockObject = new Object(); // for android's wakelock
 	
 	private WSListenerThread listenerThread;
 	private OnMessageListener onMessageListener;
@@ -148,6 +151,17 @@ public class MewaConnection {
 	}
 	
 	/**
+	 * Sets wake lock to be acquired during listener processing.
+	 * 
+	 * @param wakeLock - (preferably partial) wake lock
+	 */
+	public void setWakeLock(WakeLock wakeLock) { // android-specific
+		synchronized (wakeLockObject) {
+			this.wakeLock = wakeLock;
+		}
+	}
+	
+	/**
 	 * Connects or, if active, reconnects to the channel. Whether the channel actually accepts this device will be notified by
 	 * <i>OnMessageListener.onConnected()</i> or <i>OnMessageListener.onError()</i>.
 	 * 
@@ -198,6 +212,12 @@ public class MewaConnection {
 		if (listenerThread != null) {
 			listenerThread.disconnect();
 			listenerThread = null;
+		}
+		
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null && wakeLock.isHeld()) {
+				wakeLock.release();
+			}
 		}
 		
 		connected = false;
@@ -288,6 +308,11 @@ public class MewaConnection {
 	 */
 	@OnMessage
 	public void onMessage(String msg) {
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null) {
+				wakeLock.acquire();
+			}
+		}
 		JsonParser parser = new JsonParser();
 		JsonObject jsonObject = parser.parse(msg).getAsJsonObject();
 		String message = jsonObject.get("type").getAsString();
@@ -351,9 +376,13 @@ public class MewaConnection {
 				onMessageListener.onDevicesEvent(time, devicesList);
 			}
 		}
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null && wakeLock.isHeld()) {
+				wakeLock.release();
+			}
+		}
     }
 	
-
 	/**
 	 * Occurs when some connection error happens within WebSocket. Closes WebSocket.
 	 * 
@@ -361,8 +390,18 @@ public class MewaConnection {
 	 */
 	@OnError
 	public void onError(Throwable t) {
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null) {
+				wakeLock.acquire();
+			}
+		}
 		t.printStackTrace();
 		close();
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null && wakeLock.isHeld()) {
+				wakeLock.release();
+			}
+		}
     }
 	
 	/**
@@ -370,9 +409,19 @@ public class MewaConnection {
 	 */
 	@OnClose
 	public void onClose() {
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null) {
+				wakeLock.acquire();
+			}
+		}
 		close();
 		if (onMessageListener != null) {
 			onMessageListener.onClosed();
+		}
+		synchronized(wakeLockObject) { // android-specific
+			if (wakeLock != null && wakeLock.isHeld()) {
+				wakeLock.release();
+			}
 		}
 	}
 
