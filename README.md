@@ -73,6 +73,11 @@ connection.setOnMessageListener(new OnMessageListener() {
   public void onDeviceLeftChannel(String timestamp, String device) {
     Log.d(TAG,device+" left the channel");
   }
+
+  @Override
+  public void onAck() {
+    Log.d(TAG,"onAck()");
+  }
 });
 
 try {

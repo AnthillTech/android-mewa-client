@@ -70,4 +70,9 @@ public interface OnMessageListener {
 	 * @param deviceList - list of connected devices in channel
 	 */
 	public void onDevicesEvent(String timestamp, List<String> deviceList);
+	
+	/**
+	 * Invoked after sending event with ack parameter set to true. Indicates event was sent succesfully.
+	 */
+	public void onAck();
 }

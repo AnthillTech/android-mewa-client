@@ -21,10 +21,10 @@ import cc.mewa.OnMessageListener;
 public class MainActivity extends Activity implements Handler.Callback {
 	public static final String TAG = "MainActivity";
 	
-	public static final String WS_URI = "ws://mewa.cc/ws";
-	public static final String CHANNEL = "user.channel1";
+	public static final String WS_URI = "ws://channels.followit24.com/ws";
+	public static final String CHANNEL = "jdermont.channel1";
 	public static final String DEVICE = "android";
-	public static final String PASSWORD = "channel-password";
+	public static final String PASSWORD = "tpjdauck";
 	
 	Button connectBtn,deviceListBtn,sendEventBtn;
 	EditText loggerTxt;
@@ -51,7 +51,7 @@ public class MainActivity extends Activity implements Handler.Callback {
         onMessageListener = new OnMessageListener() {
 			@Override
 			public void onConnected() {
-				Log.d(TAG,"onConnected()");
+				Log.d(TAG,"onConnected(2)");
 				handler.sendEmptyMessage(0);
 			}
 			
@@ -126,6 +126,11 @@ public class MainActivity extends Activity implements Handler.Callback {
 				msg.setData(data);
 				handler.sendMessage(msg);
 			}
+			
+			@Override
+			public void onAck() {
+				Log.d(TAG,"onAck() ");
+			}
         };
     }
     
@@ -150,7 +155,7 @@ public class MainActivity extends Activity implements Handler.Callback {
     }
     
 	public void connectClick(View v) {
-	    if (connection == null || !connection.isConnectedToChannel()) {
+	    if (connection == null) {
 	        task = new AsyncTask<String,String,String>() {
 	        	ProgressDialog dialog;
 	        	
@@ -173,10 +178,11 @@ public class MainActivity extends Activity implements Handler.Callback {
 				protected String doInBackground(String... params) {
 					connection = new MewaConnection(WS_URI,CHANNEL,DEVICE,PASSWORD);
 					connection.setOnMessageListener(onMessageListener);
-			    	try {
-			    		connection.connect();
+					//connection.subscribeToEvents(new String[] { "org.fi24.light", "org.fi24.switch" });
+					connection.subscribeToAllEvents();
+					try {
+						connection.connect();
 					} catch (InitConnectionException e) {
-						e.printStackTrace();
 						return "error";
 					}
 					return "ok";
@@ -219,7 +225,7 @@ public class MainActivity extends Activity implements Handler.Callback {
 	}
 	
 	public void sendEventClick(View v) {
-		connection.sendEvent("event.X", "{ }");
+		connection.sendEvent("event.X", "{ }", true);
 	}
 
 	@Override

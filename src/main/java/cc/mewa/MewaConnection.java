@@ -48,6 +48,7 @@ public class MewaConnection {
 	private String channel;
 	private String device;
 	private String password;
+	private String[] subscribedEvents;
 	private long idleTimeout;
 	private boolean connected;
 	private ClientManager client;
@@ -72,7 +73,6 @@ public class MewaConnection {
 		this.channel = channel;
 		this.device = device;
 		this.password = password;
-		
 		connected = false;
 		client = ClientManager.createClient();
 	}
@@ -142,12 +142,19 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Checks if the client is connected to the channel. May return false, while the WebSocket itself is still alive.
-	 *  
-	 * @return Returns whether is connected to channel or not.
+	 * The connection will receive all events from channel. It will work after establishing new connection.
 	 */
-	public boolean isConnectedToChannel() {
-		return connected;
+	public void subscribeToAllEvents() {
+		subscribeToEvents(new String[] { "" });
+	}
+	
+	/**
+	 * The connection will receive all events that start from specified prefixes in String Array. It will work after establishing new connection.
+	 * 
+	 * @param subscribedEvents - String Array of events prefixes
+	 */
+	public void subscribeToEvents(String[] subscribedEvents) {
+		this.subscribedEvents = subscribedEvents;
 	}
 	
 	/**
@@ -159,6 +166,15 @@ public class MewaConnection {
 		synchronized (wakeLockObject) {
 			this.wakeLock = wakeLock;
 		}
+	}
+	
+	/**
+	 * Checks if the client is connected to the channel. May return false, while the WebSocket itself is still alive.
+	 *  
+	 * @return Returns whether is connected to channel or not.
+	 */
+	public boolean isConnectedToChannel() {
+		return connected;
 	}
 	
 	/**
@@ -246,7 +262,18 @@ public class MewaConnection {
 	 * @param params - event parameters
 	 */
 	public void sendEvent(String eventId, String params) {
-		send(Protocol.sendEvent(eventId, params));
+		send(Protocol.sendEvent(eventId, params, false));
+	}
+	
+	/**
+	 * Sends event to channel with parameters.
+	 * 
+	 * @param eventId - event type
+	 * @param params - event parameters
+	 * @param ack - set if channel will acknowledge sent event
+	 */
+	public void sendEvent(String eventId, String params, boolean ack) {
+		send(Protocol.sendEvent(eventId, params, ack));
 	}
 	
 	/**
@@ -294,9 +321,8 @@ public class MewaConnection {
 	@OnOpen
 	public void onOpen(Session session) {
 		try {
-			session.getBasicRemote().sendText(Protocol.connect(channel, device, password));
+			session.getBasicRemote().sendText(Protocol.connect(channel, device, password, subscribedEvents));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -316,42 +342,7 @@ public class MewaConnection {
 		JsonParser parser = new JsonParser();
 		JsonObject jsonObject = parser.parse(msg).getAsJsonObject();
 		String message = jsonObject.get("type").getAsString();
-		if (message.equals("connected")) {
-			connected = true;
-			if (onMessageListener != null) {
-				onMessageListener.onConnected();
-			}
-		} else if (message.equals("disconnected")) {
-			if (onMessageListener != null) {
-				onMessageListener.onClosed();
-			}
-			close();			
-		} else if (message.equals("already-connected-error")) {
-			if (onMessageListener != null) {
-				onMessageListener.onError("already-connected-error");
-			}
-		} else if (message.equals("authorization-error")) {
-			if (onMessageListener != null) {
-				onMessageListener.onError("authorization-error");
-			}
-			close();
-		} else if (message.equals("not-connected-error")) {
-			if (onMessageListener != null) {
-				onMessageListener.onError("not-connected-error");
-			}
-		} else if (message.equals("joined-channel")) {
-			if (onMessageListener != null) {
-				String time = jsonObject.get("time").getAsString();
-				String device = jsonObject.get("device").getAsString();
-				onMessageListener.onDeviceJoinedChannel(time, device);
-			}
-		} else if (message.equals("left-channel")) {
-			if (onMessageListener != null) {
-				String time = jsonObject.get("time").getAsString();
-				String device = jsonObject.get("device").getAsString();
-				onMessageListener.onDeviceLeftChannel(time, device);
-			}
-		} else if (message.equals("event")) {
+		if (message.equals("event")) {
 			if (onMessageListener != null) {
 				String time = jsonObject.get("time").getAsString();
 				String device = jsonObject.get("device").getAsString();
@@ -367,6 +358,32 @@ public class MewaConnection {
 				String params = jsonObject.get("params").getAsString();
 				onMessageListener.onMessage(time, device, msgId, params);
 			}
+		} else if (message.equals("ack")) {
+			if (onMessageListener != null) {
+				onMessageListener.onAck();
+			}
+		} else if (message.equals("joined-channel")) {
+			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
+				String device = jsonObject.get("device").getAsString();
+				onMessageListener.onDeviceJoinedChannel(time, device);
+			}
+		} else if (message.equals("left-channel")) {
+			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
+				String device = jsonObject.get("device").getAsString();
+				onMessageListener.onDeviceLeftChannel(time, device);
+			}
+		} else if (message.equals("connected")) {
+			connected = true;
+			if (onMessageListener != null) {
+				onMessageListener.onConnected();
+			}
+		} else if (message.equals("disconnected")) {
+			if (onMessageListener != null) {
+				onMessageListener.onClosed();
+			}
+			close();			
 		} else if (message.equals("devices-event")) {
 			if (onMessageListener != null) {
 				String time = jsonObject.get("time").getAsString();
@@ -374,6 +391,19 @@ public class MewaConnection {
 				Type type = new TypeToken<List<String>>(){}.getType();
 				List<String> devicesList =  gson.fromJson(jsonObject.get("devices"), type );
 				onMessageListener.onDevicesEvent(time, devicesList);
+			}
+		} else if (message.equals("already-connected-error")) {
+			if (onMessageListener != null) {
+				onMessageListener.onError("already-connected-error");
+			}
+		} else if (message.equals("authorization-error")) {
+			if (onMessageListener != null) {
+				onMessageListener.onError("authorization-error");
+			}
+			close();
+		} else if (message.equals("not-connected-error")) {
+			if (onMessageListener != null) {
+				onMessageListener.onError("not-connected-error");
 			}
 		}
 		synchronized(wakeLockObject) { // android-specific

@@ -1,6 +1,8 @@
 package cc.mewa;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Protocol - helper class for sending messages
@@ -18,24 +20,35 @@ class Protocol {
 		return jsonObject.toString();
 	}
 	
+	public static String connect(String channel,String device, String password, String[] subscribedEvents) {
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("type", "connect");
+		jsonObject.addProperty("channel", channel);
+		jsonObject.addProperty("device", device);
+		jsonObject.addProperty("password", password);
+		JsonArray events = new JsonArray();
+		if (subscribedEvents != null) {			
+			for (String subscribedEvent : subscribedEvents) {
+				events.add(new JsonPrimitive(subscribedEvent));
+			}
+		}
+		jsonObject.add("subscribe", events);
+		return jsonObject.toString();
+	}
+	
 	public static String disconnect() {
-		/*JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("type", "get-devices");
-		return jsonObject.toString();*/
 		return "{\"type\": \"disconnect\"}";
 	}
 		
 	public static String getDevices() {
-		/*JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("type", "get-devices");
-		return jsonObject.toString();*/
 		return "{\"type\": \"get-devices\"}";
 	}
 	
-	public static String sendEvent(String eventId, String params) {		
+	public static String sendEvent(String eventId, String params, boolean ack) {		
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("type", "send-event");
 		jsonObject.addProperty("id", eventId);
+		jsonObject.addProperty("ack", ack);
 		jsonObject.addProperty("params", params);
 		return jsonObject.toString();
 	}
