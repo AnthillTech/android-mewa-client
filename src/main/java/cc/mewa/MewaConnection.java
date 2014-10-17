@@ -258,10 +258,10 @@ public class MewaConnection {
 	}
 	
 	/**
-	 * Requests last events, filtering by device, event prefix or both. At least one parameter has to be more than wildcard.
+	 * Requests last events, filtering by device, event prefix or both.
 	 * 
-	 * @param device - device name, or "*"
-	 * @param eventPrefix - event prefix, or "*"
+	 * @param device - device name, or "" for all devices
+	 * @param eventPrefix - event prefix, or "" for all services
 	 */
 	public void requestLastEvents(String device, String eventPrefix) {
 		send(Protocol.getLastEvents(device, eventPrefix));
