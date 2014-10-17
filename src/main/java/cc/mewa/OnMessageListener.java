@@ -71,8 +71,18 @@ public interface OnMessageListener {
 	 */
 	public void onDevicesEvent(String timestamp, List<String> deviceList);
 	
+	
 	/**
-	 * Invoked after sending event with ack parameter set to true. Indicates event was sent succesfully.
+	 * Invoked when a channel, after requested, sends list of last events given by request parameters.
+	 * List is in form of Arrays of Strings: timestamp, device, eventId, params
+	 * 
+	 * @param timestamp - ISO 8601 time when packet was processed in the channel
+	 * @param eventList - list of events in array: timestamp, device, eventId, params
+	 */
+	public void onLastEvents(String timestamp, List<String[]> eventList);
+	
+	/**
+	 * Invoked after sending event with ack parameter set to true. Indicates event was sent successfully.
 	 */
 	public void onAck();
 }

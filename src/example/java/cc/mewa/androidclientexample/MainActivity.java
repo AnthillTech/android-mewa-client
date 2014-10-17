@@ -131,6 +131,11 @@ public class MainActivity extends Activity implements Handler.Callback {
 			public void onAck() {
 				Log.d(TAG,"onAck() ");
 			}
+
+			@Override
+			public void onLastEvents(String timestamp, List<String[]> eventList) {
+				Log.d(TAG,"onLastEvents() "+eventList.size());
+			}
         };
     }
     

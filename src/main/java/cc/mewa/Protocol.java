@@ -44,6 +44,14 @@ class Protocol {
 		return "{\"type\": \"get-devices\"}";
 	}
 	
+	public static String getLastEvents(String device, String prefix) {
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("type", "get-last-events");
+		jsonObject.addProperty("device", device);
+		jsonObject.addProperty("prefix", prefix);
+		return jsonObject.toString();
+	}
+	
 	public static String sendEvent(String eventId, String params, boolean ack) {		
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("type", "send-event");

@@ -75,6 +75,11 @@ connection.setOnMessageListener(new OnMessageListener() {
   }
 
   @Override
+  public void onLastEvents(String timestamp, List<String[]> eventList) {
+    Log.d(TAG,"onLastEvents() "+eventList.size());
+  }
+
+  @Override
   public void onAck() {
     Log.d(TAG,"onAck()");
   }

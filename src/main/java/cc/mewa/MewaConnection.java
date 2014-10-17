@@ -3,6 +3,7 @@ package cc.mewa;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
@@ -18,6 +19,7 @@ import org.glassfish.tyrus.client.ClientManager;
 import android.os.PowerManager.WakeLock; // android-specific
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -256,6 +258,16 @@ public class MewaConnection {
 	}
 	
 	/**
+	 * Requests last events, filtering by device, event prefix or both. At least one parameter has to be more than wildcard.
+	 * 
+	 * @param device - device name, or "*"
+	 * @param eventPrefix - event prefix, or "*"
+	 */
+	public void requestLastEvents(String device, String eventPrefix) {
+		send(Protocol.getLastEvents(device, eventPrefix));
+	}
+	
+	/**
 	 * Sends event to channel with parameters.
 	 * 
 	 * @param eventId - event type
@@ -373,6 +385,22 @@ public class MewaConnection {
 				String time = jsonObject.get("time").getAsString();
 				String device = jsonObject.get("device").getAsString();
 				onMessageListener.onDeviceLeftChannel(time, device);
+			}
+		} else if (message.equals("last-events")) {
+			if (onMessageListener != null) {
+				String time = jsonObject.get("time").getAsString();
+				JsonArray array = jsonObject.get("events").getAsJsonArray();
+				List<String[]> events = new ArrayList<String[]>();
+				for (int i = 0; i < array.size(); i++) {
+					JsonObject object = array.get(i).getAsJsonObject();
+					String[] event = new String[4];
+					event[0] = object.get("time").getAsString();
+					event[1] = object.get("device").getAsString();
+					event[2] = object.get("id").getAsString();
+					event[3] = object.get("params").getAsString();
+					events.add(event);
+				}
+				onMessageListener.onLastEvents(time, events);
 			}
 		} else if (message.equals("connected")) {
 			connected = true;
